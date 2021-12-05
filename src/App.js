@@ -6,11 +6,17 @@ import {
   ApolloConsumer,
 } from '@apollo/client';
 import MyRouter from './components/MyRouter';
+
+const uri =
+  process.env.NODE_ENV !== 'production'
+    ? process.env.REACT_APP_GRAPHQL_URL_LOCAL
+    : process.env.REACT_APP_GRAPHQL_URL_PRODUCTION;
+
 const client = new ApolloClient({
-  uri: 'http://localhost:4000/graphql',
+  uri,
   cache: new InMemoryCache(),
 });
-
+console.log('ENV', uri);
 const App = () => {
   return (
     <ApolloProvider client={client}>
