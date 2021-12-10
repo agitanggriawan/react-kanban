@@ -34,6 +34,17 @@ const MyRouter = (greaterProps) => {
         <Switch>
           <Route
             exact
+            path="/"
+            render={() => {
+              return cookies.get('token') ? (
+                <Redirect to="/board" />
+              ) : (
+                <Redirect to="/login" />
+              );
+            }}
+          />
+          <Route
+            exact
             path="/login"
             render={(props) => (
               <Login query={greaterProps.client.query} {...props} />
@@ -47,6 +58,9 @@ const MyRouter = (greaterProps) => {
           />
           <Route path="*">
             <>404</>
+          </Route>
+          <Route path="/">
+            <Redirect to="/login" />
           </Route>
         </Switch>
       </Router>
