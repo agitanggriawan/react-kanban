@@ -36,3 +36,23 @@ export const CREATE_BOARD = gql`
     }
   }
 `;
+
+export const FIND_CARD_BY_BID = gql`
+  query findCardByBid($bid: String!) {
+    findCardByBid(bid: $bid) {
+      id
+      cid
+      task
+    }
+  }
+`;
+
+export const UPDATE_CARD = gql`
+  mutation updateCard($cid: String!, $task: JSON!) {
+    updateCard(cid: $cid, task: $task) {
+      id
+      cid
+      task
+    }
+  }
+`;
