@@ -8,9 +8,8 @@ import {
 } from 'react-router-dom';
 import MyBoard from './MyBoard';
 import Login from './Login';
-// import MonevSignUp from './MonevSignUp';
-// import MonevSnack from './MonevSnack';
-// import MonevLoading from './MonevLoading';
+import MyLoading from './MyLoading';
+import MySnack from './MySnack';
 
 const cookies = new Cookies();
 
@@ -30,6 +29,7 @@ function PrivateRoute({ component: Component, ...rest }) {
 const MyRouter = (greaterProps) => {
   return (
     <>
+      {greaterProps.globalLoading && <MyLoading />}
       <Router>
         <Switch>
           <Route
@@ -63,6 +63,7 @@ const MyRouter = (greaterProps) => {
             <Redirect to="/login" />
           </Route>
         </Switch>
+        <MySnack {...greaterProps.snack} />
       </Router>
     </>
   );

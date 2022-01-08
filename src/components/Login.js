@@ -6,28 +6,51 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { AUTHENTICATE } from '../graphql';
 import Cookies from 'universal-cookie/cjs';
+import { AUTHENTICATE } from '../graphql';
+import GlobalContext from '../utils/GlobalContext';
 
 const theme = createTheme();
 
 export default function SignIn(props) {
   const { query, history } = props;
+  const [username, setUsername] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const { setSnack, setGlobalLoading } = React.useContext(GlobalContext);
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    const {
-      data: { authenticate },
-    } = await query({
-      query: AUTHENTICATE,
-      variables: { username: '123', password: '123' },
-      fetchPolicy: 'no-cache',
-    });
+  const handleSubmit = async () => {
+    try {
+      setGlobalLoading(true);
+      const {
+        data: { authenticate },
+      } = await query({
+        query: AUTHENTICATE,
+        variables: { username, password },
+        fetchPolicy: 'no-cache',
+      });
 
-    const cookie = new Cookies();
-    cookie.set('token', authenticate.token, { path: '/' });
+      const cookie = new Cookies();
+      cookie.set('token', authenticate.token, { path: '/' });
+      cookie.set('username', authenticate.username);
+      cookie.set('id', authenticate.id);
 
-    history.replace('/board');
+      setSnack({
+        variant: 'success',
+        message: `Selamat Datang`,
+        opened: true,
+      });
+      setGlobalLoading(false);
+
+      history.replace('/board');
+    } catch (error) {
+      console.log(error);
+      setSnack({
+        variant: 'error',
+        message: 'Username atau Password salah',
+        opened: true,
+      });
+      setGlobalLoading(false);
+    }
   };
 
   return (
@@ -54,12 +77,7 @@ export default function SignIn(props) {
               Aplikasi Kanban E-BELAJAR
             </Typography>
           </center>
-          <Box
-            component="form"
-            onSubmit={handleSubmit}
-            noValidate
-            sx={{ mt: 1 }}
-          >
+          <Box noValidate sx={{ mt: 1 }}>
             <TextField
               margin="normal"
               required
@@ -69,6 +87,8 @@ export default function SignIn(props) {
               name="username"
               autoFocus
               autoComplete="off"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
             />
             <TextField
               margin="normal"
@@ -79,12 +99,15 @@ export default function SignIn(props) {
               type="password"
               id="password"
               autoComplete="off"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
             />
             <Button
               type="submit"
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
+              onClick={handleSubmit}
             >
               Login
             </Button>

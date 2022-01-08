@@ -20,9 +20,6 @@ import { CREATE_BOARD } from '../graphql';
 
 function HideOnScroll(props) {
   const { children, window } = props;
-  // Note that you normally won't need to set the window ref as useScrollTrigger
-  // will default to window.
-  // This is only being set here because the demo is in an iframe.
   const trigger = useScrollTrigger({
     target: window ? window() : undefined,
   });
@@ -46,7 +43,6 @@ HideOnScroll.propTypes = {
 export default function MyBoard(props) {
   const { history, query, mutate } = props;
   const cookie = new Cookies();
-  console.log(props.match);
   const [boards, setBoards] = React.useState([]);
   const [title, setTitle] = React.useState('');
   const [open, setOpen] = React.useState(false);
@@ -71,6 +67,10 @@ export default function MyBoard(props) {
 
   const handleSubmit = async () => {
     try {
+      if (!title) {
+        return false;
+      }
+
       const {
         data: { createBoard },
       } = await mutate({
@@ -78,7 +78,7 @@ export default function MyBoard(props) {
         variables: {
           data: {
             name: title,
-            user_id: 1,
+            user_id: cookie.get('id'),
           },
         },
         fetchPolicy: 'no-cache',
@@ -116,7 +116,7 @@ export default function MyBoard(props) {
         <AppBar>
           <Toolbar>
             <Typography variant="h6" component="div">
-              React Kanban
+              React Kanban | Username: {cookie.get('username').toUpperCase()}
             </Typography>
             <Box sx={{ flexGrow: 1 }}>
               <div style={{ float: 'right' }}>

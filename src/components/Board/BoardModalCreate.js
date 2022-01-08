@@ -37,7 +37,7 @@ export default function BasicModal(props) {
             fullWidth
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Add board title..."
+            placeholder="Board Title"
             style={{
               color: 'white',
               fontWeight: 'bold',
