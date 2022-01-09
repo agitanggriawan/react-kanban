@@ -43,6 +43,16 @@ export const FIND_CARD_BY_BID = gql`
       id
       cid
       task
+      board {
+        id
+        bid
+        name
+        jsonb
+        users {
+          id
+          username
+        }
+      }
     }
   }
 `;
@@ -54,5 +64,20 @@ export const UPDATE_CARD = gql`
       cid
       task
     }
+  }
+`;
+
+export const USERS = gql`
+  query users($board_id: ID) {
+    users(board_id: $board_id) {
+      id
+      username
+    }
+  }
+`;
+
+export const ADD_MEMBER = gql`
+  mutation addMember($board_id: ID!, $user_ids: [ID!]!) {
+    addMember(board_id: $board_id, user_ids: $user_ids)
   }
 `;

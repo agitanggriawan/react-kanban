@@ -6,7 +6,9 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import TextField from '@mui/material/TextField';
-import { Grid } from '@mui/material';
+import Autocomplete from '@mui/material/Autocomplete';
+import Chip from '@mui/material/Chip';
+import Grid from '@mui/material/Grid';
 
 export default function AlertDialog(props) {
   const {
@@ -85,21 +87,40 @@ export default function AlertDialog(props) {
               <Grid item xs={12} sm={12} md={12} lg={12}>
                 <TextField
                   id="date"
-                  label="Date"
-                  variant="outlined"
+                  label="Birthday"
+                  type="date"
                   value={date}
-                  onChange={(e) => setDate(e.target.value)}
                   fullWidth
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  onChange={(e) => setDate(e.target.value)}
                 />
               </Grid>
               <Grid item xs={12} sm={12} md={12} lg={12}>
-                <TextField
-                  id="tags"
-                  label="Tag"
-                  variant="outlined"
-                  value={tag}
-                  onChange={(e) => setTag(e.target.value)}
-                  fullWidth
+                <Autocomplete
+                  multiple
+                  id="tags-filled"
+                  options={[].map((option) => option.title)}
+                  freeSolo
+                  renderTags={(value, getTagProps) => {
+                    setTag(value);
+                    return value.map((option, index) => (
+                      <Chip
+                        variant="outlined"
+                        label={option}
+                        {...getTagProps({ index })}
+                      />
+                    ));
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      variant="outlined"
+                      label="Tag"
+                      placeholder="Press 'Enter' to add Tag"
+                    />
+                  )}
                 />
               </Grid>
             </Grid>
