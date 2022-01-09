@@ -3,10 +3,15 @@ import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
+import Typography from '@mui/material/Typography';
+import Avatar from '@mui/material/Avatar';
+import AvatarGroup from '@mui/material/AvatarGroup';
+import Tooltip from '@mui/material/Tooltip';
 import { customAlphabet } from 'nanoid/non-secure';
-import { FIND_CARD_BY_BID, UPDATE_CARD } from '../graphql';
-import { Typography } from '@mui/material';
+import dayjs from 'dayjs';
+import { FIND_CARD_BY_BID, UPDATE_CARD, USERS, ADD_MEMBER } from '../graphql';
 import InputCard from './List/InputCard';
+import Invite from './List/Invite';
 
 const App = (props) => {
   const { query, match, mutate } = props;
@@ -17,7 +22,11 @@ const App = (props) => {
   const [title, setTitle] = useState(null);
   const [description, setDescription] = useState(null);
   const [date, setDate] = useState(null);
-  const [tag, setTag] = useState(null);
+  const [tag, setTag] = useState([]);
+  const [board, setBoard] = useState(null);
+  const [users, setUsers] = useState(null);
+  const [ids, setIds] = useState([]);
+  const [anchorEl, setAnchorEl] = useState(null);
 
   useEffect(() => {
     const getCard = async () => {
@@ -30,13 +39,55 @@ const App = (props) => {
         },
         fetchPolicy: 'no-cache',
       });
-      console.log('findCardByBid', findCardByBid);
+
+      const {
+        data: { users },
+      } = await query({
+        query: USERS,
+        fetchPolicy: 'no-cache',
+        variables: {
+          board_id: findCardByBid?.board?.id,
+        },
+      });
+
       setColumns(findCardByBid?.task);
       setCid(findCardByBid?.cid);
+      setBoard(findCardByBid?.board);
+      setUsers(users);
     };
 
     getCard();
-  }, [match?.params?.bid, query]);
+  }, [match?.params?.bid, query, users]);
+
+  useEffect(() => {
+    const getUsers = async () => {
+      const {
+        data: { users },
+      } = await query({
+        query: USERS,
+        fetchPolicy: 'no-cache',
+        variables: {
+          board_id: board?.id,
+        },
+      });
+
+      setUsers(users);
+    };
+
+    getUsers();
+  }, [board?.id, match.params.bid, query, anchorEl]);
+
+  const handleAddMember = async (user_ids) => {
+    await mutate({
+      mutation: ADD_MEMBER,
+      variables: {
+        board_id: board.id,
+        user_ids,
+      },
+    });
+
+    setAnchorEl(null);
+  };
 
   const onDragEnd = async (result, columns, setColumns) => {
     if (!result.destination) return;
@@ -113,11 +164,11 @@ const App = (props) => {
 
   const handleAddTask = async (title, description, date, tag) => {
     const task = columns;
-    console.log(generateUniqueId());
+
     task[idx].items.push({
       id: generateUniqueId(),
       date,
-      tags: [tag],
+      tags: tag,
       title,
       description,
     });
@@ -139,6 +190,35 @@ const App = (props) => {
 
   return (
     <>
+      <Box
+        sx={{
+          display: 'flex',
+          width: '100%',
+          marginLeft: 3,
+        }}
+      >
+        <Typography variant="h6">{board?.name} &nbsp;</Typography>
+        <AvatarGroup max={6}>
+          {board?.users.map((x, i) => (
+            <React.Fragment>
+              <Tooltip title={x.username}>
+                <Avatar sx={{ width: 32, height: 32 }} id={i}>
+                  {x.username.charAt(0).toUpperCase()}
+                </Avatar>
+              </Tooltip>
+            </React.Fragment>
+          ))}
+        </AvatarGroup>
+        &nbsp;&nbsp;&nbsp;
+        <Invite
+          users={users}
+          handleAddMember={handleAddMember}
+          ids={ids}
+          setIds={setIds}
+          anchorEl={anchorEl}
+          setAnchorEl={setAnchorEl}
+        />
+      </Box>
       <Box
         sx={{
           display: 'flex',
@@ -167,8 +247,10 @@ const App = (props) => {
                               : 'lightgrey',
                             padding: 4,
                             width: 250,
+                            maxHeight: 500,
                             minHeight: 500,
                             borderRadius: '10px',
+                            overflow: 'scroll',
                           }}
                         >
                           {column?.items?.map((item, index) => {
@@ -213,6 +295,7 @@ const App = (props) => {
                                         sx={{
                                           display: 'flex',
                                           mt: 1,
+                                          flexWrap: 'wrap',
                                         }}
                                       >
                                         {item.tags.length
@@ -226,6 +309,19 @@ const App = (props) => {
                                               </>
                                             ))
                                           : null}
+                                      </Box>
+                                      <Box
+                                        sx={{
+                                          display: 'flex',
+                                          mt: 1,
+                                        }}
+                                      >
+                                        <Typography variant="caption">
+                                          Due Date:{' '}
+                                          {dayjs(item.date).format(
+                                            'DD - MM - YYYY'
+                                          )}
+                                        </Typography>
                                       </Box>
                                     </Box>
                                   );
