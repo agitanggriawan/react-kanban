@@ -27,7 +27,7 @@ export default function AlertDialog(props) {
           <DialogContentText id="alert-dialog-description">
             <div>{tempData?.description}</div>
             <Typography variant="subtitle2">{tempData?.date}</Typography>
-            {tempData.tags.length
+            {tempData?.tags.length
               ? tempData.tags.map((x) => (
                   <>
                     <Chip
