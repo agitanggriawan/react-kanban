@@ -7,14 +7,17 @@ import Typography from '@mui/material/Typography';
 import Avatar from '@mui/material/Avatar';
 import AvatarGroup from '@mui/material/AvatarGroup';
 import Tooltip from '@mui/material/Tooltip';
+import IconButton from '@mui/material/IconButton';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { customAlphabet } from 'nanoid/non-secure';
 import dayjs from 'dayjs';
 import { FIND_CARD_BY_BID, UPDATE_CARD, USERS, ADD_MEMBER } from '../graphql';
 import InputCard from './List/InputCard';
 import Invite from './List/Invite';
+import BoardModalDetail from './Board/BoardModalDetail';
 
 const App = (props) => {
-  const { query, match, mutate } = props;
+  const { query, match, mutate, history } = props;
   const [columns, setColumns] = useState({});
   const [cid, setCid] = useState(null);
   const [open, setOpen] = useState(false);
@@ -25,8 +28,11 @@ const App = (props) => {
   const [tag, setTag] = useState([]);
   const [board, setBoard] = useState(null);
   const [users, setUsers] = useState(null);
+  const [members, setMembers] = useState([]);
   const [ids, setIds] = useState([]);
   const [anchorEl, setAnchorEl] = useState(null);
+  const [openDetail, setOpenDetail] = useState(null);
+  const [tempData, setTempData] = useState(null);
 
   useEffect(() => {
     const getCard = async () => {
@@ -40,24 +46,14 @@ const App = (props) => {
         fetchPolicy: 'no-cache',
       });
 
-      const {
-        data: { users },
-      } = await query({
-        query: USERS,
-        fetchPolicy: 'no-cache',
-        variables: {
-          board_id: findCardByBid?.board?.id,
-        },
-      });
-
       setColumns(findCardByBid?.task);
       setCid(findCardByBid?.cid);
       setBoard(findCardByBid?.board);
-      setUsers(users);
+      setMembers(findCardByBid?.board?.users);
     };
 
     getCard();
-  }, [match?.params?.bid, query, users]);
+  }, [match?.params?.bid, query]);
 
   useEffect(() => {
     const getUsers = async () => {
@@ -67,7 +63,7 @@ const App = (props) => {
         query: USERS,
         fetchPolicy: 'no-cache',
         variables: {
-          board_id: board?.id,
+          board_id: match?.params?.bid,
         },
       });
 
@@ -75,16 +71,26 @@ const App = (props) => {
     };
 
     getUsers();
-  }, [board?.id, match.params.bid, query, anchorEl]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleAddMember = async (user_ids) => {
-    await mutate({
+    const user = await mutate({
       mutation: ADD_MEMBER,
       variables: {
         board_id: board.id,
         user_ids,
       },
     });
+    debugger;
+    const newMember = user.data.addMember.map((x) => ({
+      ...x.user,
+    }));
+
+    const filterUser = users.filter((x) => !user_ids.includes(x.username));
+    const oldMember = members;
+    setUsers([...filterUser]);
+    setMembers([...oldMember, ...newMember]);
 
     setAnchorEl(null);
   };
@@ -168,7 +174,7 @@ const App = (props) => {
     task[idx].items.push({
       id: generateUniqueId(),
       date,
-      tags: tag,
+      tags: tag.filter((x) => x),
       title,
       description,
     });
@@ -197,16 +203,19 @@ const App = (props) => {
           marginLeft: 3,
         }}
       >
+        <Tooltip title="Kembali">
+          <IconButton aria-label="back" onClick={() => history.push('/board')}>
+            <ArrowBackIcon />
+          </IconButton>
+        </Tooltip>
         <Typography variant="h6">{board?.name} &nbsp;</Typography>
         <AvatarGroup max={6}>
-          {board?.users.map((x, i) => (
-            <React.Fragment>
-              <Tooltip title={x.username}>
-                <Avatar sx={{ width: 32, height: 32 }} id={i}>
-                  {x.username.charAt(0).toUpperCase()}
-                </Avatar>
-              </Tooltip>
-            </React.Fragment>
+          {members.map((x, i) => (
+            <Tooltip title={x.username}>
+              <Avatar sx={{ width: 32, height: 32 }} id={i}>
+                {x.username.charAt(0).toUpperCase()}
+              </Avatar>
+            </Tooltip>
           ))}
         </AvatarGroup>
         &nbsp;&nbsp;&nbsp;
@@ -280,8 +289,8 @@ const App = (props) => {
                                         ...provided.draggableProps.style,
                                       }}
                                       onClick={(e) => {
-                                        console.log(item);
-                                        debugger;
+                                        setTempData(item);
+                                        setOpenDetail(true);
                                       }}
                                       id={`a${index}`}
                                     >
@@ -317,10 +326,10 @@ const App = (props) => {
                                         }}
                                       >
                                         <Typography variant="caption">
-                                          Due Date:{' '}
-                                          {dayjs(item.date).format(
-                                            'DD - MM - YYYY'
-                                          )}
+                                          {item.date &&
+                                            `Due Date: ${dayjs(
+                                              item.date
+                                            ).format('DD - MM - YYYY')}`}
                                         </Typography>
                                       </Box>
                                     </Box>
@@ -368,6 +377,11 @@ const App = (props) => {
         setDate={setDate}
         tag={tag}
         setTag={setTag}
+      />
+      <BoardModalDetail
+        openDetail={openDetail}
+        setOpenDetail={setOpenDetail}
+        tempData={tempData}
       />
     </>
   );
