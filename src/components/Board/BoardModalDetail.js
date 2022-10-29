@@ -1,13 +1,15 @@
 import * as React from 'react';
 import Dialog from '@mui/material/Dialog';
 import Typography from '@mui/material/Typography';
-import Chip from '@mui/material/Chip';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
+import DialogActions from '@mui/material/DialogActions';
+import Button from '@mui/material/Button';
+import dayjs from 'dayjs';
 
-export default function AlertDialog(props) {
-  const { openDetail, setOpenDetail, tempData } = props;
+const BoardModalDetail = (props) => {
+  const { openDetail, setOpenDetail, tempData, handleDeleteTask } = props;
 
   const handleClose = () => {
     setOpenDetail(false);
@@ -24,24 +26,24 @@ export default function AlertDialog(props) {
       >
         <DialogTitle id="alert-dialog-title">{tempData?.title}</DialogTitle>
         <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            <div>{tempData?.description}</div>
-            <Typography variant="subtitle2">{tempData?.date}</Typography>
-            {tempData?.tags.length
-              ? tempData.tags.map((x) => (
-                  <>
-                    <Chip
-                      color="primary"
-                      label={x}
-                      style={{ color: 'white' }}
-                    />
-                    &nbsp;
-                  </>
-                ))
-              : null}
+          <DialogContentText
+            id="alert-dialog-description"
+            style={{ color: 'black' }}
+          >
+            <Typography variant="subtitle2">Due Date</Typography>
+            <Typography variant="body2">
+              {dayjs(tempData?.date).format('DD - MM - YYYY')}
+            </Typography>
+            <Typography variant="subtitle2">Description</Typography>
+            <Typography variant="body2">{tempData?.description}</Typography>
           </DialogContentText>
         </DialogContent>
+        <DialogActions>
+          <Button onClick={() => handleDeleteTask(tempData?.id)}>Delete</Button>
+        </DialogActions>
       </Dialog>
     </div>
   );
-}
+};
+
+export default BoardModalDetail;

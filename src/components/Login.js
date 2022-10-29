@@ -67,14 +67,14 @@ export default function SignIn(props) {
         >
           <center>
             <img
-              src="/ebelajar.png"
+              src="/bbi1.png"
               alt="logo"
               style={{
                 width: '100%',
               }}
             />
-            <Typography component="h1" variant="h6">
-              Aplikasi Kanban E-BELAJAR
+            <Typography component="h1" sx={{ pt: 2 }} variant="h6">
+              Aplikasi Kanban PT Boma Bisma Indra
             </Typography>
           </center>
           <Box noValidate sx={{ mt: 1 }}>
