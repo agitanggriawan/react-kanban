@@ -87,7 +87,7 @@ export default function AlertDialog(props) {
               <Grid item xs={12} sm={12} md={12} lg={12}>
                 <TextField
                   id="date"
-                  label="Birthday"
+                  label="Tanggal"
                   type="date"
                   value={date}
                   fullWidth
@@ -118,7 +118,7 @@ export default function AlertDialog(props) {
                       {...params}
                       variant="outlined"
                       label="Tag"
-                      placeholder="Press 'Enter' to add Tag"
+                      placeholder="Tekan 'Enter' untuk menambah Tag"
                     />
                   )}
                 />

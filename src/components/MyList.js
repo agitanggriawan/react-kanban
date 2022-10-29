@@ -16,9 +16,10 @@ import InputCard from './List/InputCard';
 import Invite from './List/Invite';
 import BoardModalDetail from './Board/BoardModalDetail';
 
-const App = (props) => {
+const MyList = (props) => {
   const { query, match, mutate, history } = props;
   const [columns, setColumns] = useState({});
+  const [fixedValue, setFixedValue] = useState({});
   const [cid, setCid] = useState(null);
   const [open, setOpen] = useState(false);
   const [idx, setIdx] = useState(null);
@@ -33,6 +34,7 @@ const App = (props) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [openDetail, setOpenDetail] = useState(null);
   const [tempData, setTempData] = useState(null);
+  const [, setTagLists] = useState([]);
 
   useEffect(() => {
     const getCard = async () => {
@@ -47,9 +49,21 @@ const App = (props) => {
       });
 
       setColumns(findCardByBid?.task);
+      setFixedValue(findCardByBid?.task);
       setCid(findCardByBid?.cid);
       setBoard(findCardByBid?.board);
       setMembers(findCardByBid?.board?.users);
+
+      const _task = findCardByBid?.task;
+      const _keys = Object.keys(_task);
+      const _tags = _keys
+        ?.map((x) => {
+          return _task[x].items.filter((y) => y.tags);
+        })
+        ?.flat()
+        ?.map((z) => z.tags)
+        ?.flat();
+      setTagLists([...new Set(_tags)]);
     };
 
     getCard();
@@ -82,7 +96,7 @@ const App = (props) => {
         user_ids,
       },
     });
-    debugger;
+
     const newMember = user.data.addMember.map((x) => ({
       ...x.user,
     }));
@@ -119,6 +133,7 @@ const App = (props) => {
         },
       };
       setColumns({ ...task });
+      setFixedValue({ ...task });
       await mutate({
         mutation: UPDATE_CARD,
         variables: {
@@ -139,6 +154,7 @@ const App = (props) => {
         },
       };
       setColumns({ ...task });
+      setFixedValue({ ...task });
       await mutate({
         mutation: UPDATE_CARD,
         variables: {
@@ -180,6 +196,8 @@ const App = (props) => {
     });
 
     setColumns({ ...task });
+    setFixedValue({ ...task });
+
     await mutate({
       mutation: UPDATE_CARD,
       variables: {
@@ -192,6 +210,268 @@ const App = (props) => {
     setDate(null);
     setTag(null);
     setOpen(false);
+  };
+
+  const handleDeleteTask = async (id) => {
+    let task = columns;
+    const items = task[idx].items.filter((x) => x.id !== id);
+    task[idx].items = items;
+
+    setColumns({ ...task });
+    setFixedValue({ ...task });
+
+    await mutate({
+      mutation: UPDATE_CARD,
+      variables: {
+        cid,
+        task,
+      },
+    });
+    setOpenDetail(false);
+  };
+
+  const handleFilter = () => {
+    console.log('columns', columns);
+    // const data = {
+    //   0: {
+    //     name: 'Backlog',
+    //     items: [
+    //       {
+    //         id: 'D4OO6mUlqp',
+    //         date: '2021-06-12T03:08:30.048Z',
+    //         tags: ['MEMORY'],
+    //         title: 'Chicken',
+    //         description:
+    //           'Consequatur voluptas voluptatem doloribus sequi dolore et. Dolorem inventore minus commodi ratione explicabo aut natus. Assumenda ipsa non amet error ut eum. Est cum dolores amet eos quaerat. Officia dolore repellat.',
+    //       },
+    //       {
+    //         id: 'Gtalafgzb5',
+    //         date: '2021-06-13T16:04:21.098Z',
+    //         tags: ['ARCHIVE'],
+    //         title: 'Keyboard',
+    //         description:
+    //           'Dolores doloremque ut occaecati odit necessitatibus vitae cumque. Rerum enim veniam consequatur. Rerum ipsa perspiciatis dicta quia dolores sint veritatis tenetur. Dignissimos sed placeat dolores dolorem autem. Blanditiis iure ea. Similique aut assumenda dicta velit labore et tempore quod.',
+    //       },
+    //       {
+    //         id: 'YNqqRgI5ad',
+    //         date: '2022-05-09T20:13:07.248Z',
+    //         tags: ['BLACKHOLE'],
+    //         title: 'Shoes',
+    //         description:
+    //           'Cumque ea id itaque est et. Qui tempore soluta non inventore molestias laboriosam expedita enim sit. Et optio aut aperiam velit. Omnis cumque dolores in id et eos ut nostrum.',
+    //       },
+    //       {
+    //         id: 'YFk0nA7fN4',
+    //         date: '2021-09-27T11:53:44.352Z',
+    //         tags: ['InnoDB'],
+    //         title: 'Table',
+    //         description:
+    //           'Adipisci ullam dolore ipsam eligendi fugit velit enim nihil consequatur. Consequuntur a quae quo impedit ea error. Doloribus non dolore maxime dolorem unde.',
+    //       },
+    //       {
+    //         id: 'QoRZq38A1i',
+    //         date: '2021-12-10T16:00:09.757Z',
+    //         tags: ['InnoDB'],
+    //         title: 'Pizza',
+    //         description:
+    //           'Ut sapiente nesciunt eius qui unde voluptatum. Error voluptatem expedita ipsum quas. Ea accusamus adipisci quam animi aut qui eum excepturi. Laboriosam ut est autem. Velit corrupti modi molestiae voluptatem non id. Id expedita in nulla corporis.',
+    //       },
+    //     ],
+    //   },
+    //   1: {
+    //     name: 'To do',
+    //     items: [
+    //       {
+    //         id: 's4pB4p20nh',
+    //         date: '2021-12-13T07:14:17.730Z',
+    //         tags: ['MEMORY'],
+    //         title: 'Bike',
+    //         description:
+    //           'Aliquid vero quo rerum non dolorum. Qui est non nihil consectetur sunt rerum tenetur harum. Earum autem error quidem. Eius similique quia vero placeat voluptatem. Libero incidunt sed beatae error et quia. Cum ad fugiat corrupti non.',
+    //       },
+    //       {
+    //         id: 'LK8IdK9JvF',
+    //         date: '2021-07-17T07:02:05.435Z',
+    //         tags: ['CSV'],
+    //         title: 'Fish',
+    //         description:
+    //           'Dolores molestiae non aut. Velit eius excepturi ut et consequuntur adipisci. Aperiam illo quisquam. Doloribus consectetur fugit non qui reprehenderit soluta ut.',
+    //       },
+    //       {
+    //         id: 'gtaxelxZNV',
+    //         date: '2022-02-23T22:54:57.815Z',
+    //         tags: ['ARCHIVE'],
+    //         title: 'Shoes',
+    //         description:
+    //           'Delectus veritatis aut nesciunt velit ipsum enim. Quo possimus fuga perspiciatis omnis sed. Quo quibusdam et doloribus hic quia qui excepturi quia iure. Omnis inventore at et et adipisci minima cum. Harum magnam quod non qui voluptatem sit harum. Quia dolore hic exercitationem est.',
+    //       },
+    //       {
+    //         id: 'Qzw13EkQCW',
+    //         date: '2021-09-14T03:25:52.282Z',
+    //         tags: ['ARCHIVE'],
+    //         title: 'Mouse',
+    //         description:
+    //           'Sed dolor non unde molestias quae consectetur autem. Perferendis libero et ea esse vitae repellat libero quaerat reiciendis. Non consectetur consequuntur modi. Magni quia nesciunt quos commodi est voluptas. Cumque voluptatum sunt necessitatibus autem ipsum maiores eos.',
+    //       },
+    //       {
+    //         id: '5ZE9OmqNvV',
+    //         date: '2022-04-11T05:14:01.936Z',
+    //         tags: ['ARCHIVE'],
+    //         title: 'Car',
+    //         description:
+    //           'Tempore ipsa vitae nisi quisquam consequatur. Natus in quia debitis aut perferendis minima. Et facilis unde repellat mollitia. Sunt ratione in aut libero ut.',
+    //       },
+    //     ],
+    //   },
+    //   2: {
+    //     name: 'Doing',
+    //     items: [
+    //       {
+    //         id: 'frjKqYSL60',
+    //         date: '2021-09-17T04:25:56.685Z',
+    //         tags: ['BLACKHOLE'],
+    //         title: 'Hat',
+    //         description:
+    //           'Voluptas dolores inventore officiis quis repudiandae illo. Porro quo dolorem. Et expedita aut aperiam porro.',
+    //       },
+    //       {
+    //         id: 'w6wf6pvjoT',
+    //         date: '2022-01-14T06:28:35.370Z',
+    //         tags: ['ARCHIVE'],
+    //         title: 'Bacon',
+    //         description:
+    //           'Nihil aliquid vitae vero porro amet sunt. Qui soluta possimus adipisci. Voluptas dicta quos ducimus suscipit non. Nihil nihil fuga nihil pariatur. Fugiat maxime deleniti.',
+    //       },
+    //       {
+    //         id: 'CbzSp8QIL3',
+    //         date: '2021-09-21T04:06:07.874Z',
+    //         tags: ['MEMORY'],
+    //         title: 'Cheese',
+    //         description:
+    //           'Sunt nesciunt perspiciatis quod consequuntur quas illum distinctio. Et provident sint. Magni non nostrum. Aut et nam. Vero quis enim.',
+    //       },
+    //       {
+    //         id: 'UNGJTo0NRM',
+    //         date: '2021-12-17T08:59:21.481Z',
+    //         tags: ['ARCHIVE'],
+    //         title: 'Pants',
+    //         description:
+    //           'Est sed nobis qui ea voluptatibus velit iusto. Accusamus consequuntur nulla quisquam voluptas quia voluptate dolores. Deleniti et aut et et dolores ratione alias. Nihil autem amet.',
+    //       },
+    //       {
+    //         id: 'NW3SvPSxdj',
+    //         date: '2021-06-18T08:15:36.241Z',
+    //         tags: ['ARCHIVE'],
+    //         title: 'Pants',
+    //         description:
+    //           'Exercitationem officiis quis sit quaerat. Fugit quam autem nisi ipsum in voluptas repellat rerum deleniti. Aut rerum vel.',
+    //       },
+    //     ],
+    //   },
+    //   3: {
+    //     name: 'Done',
+    //     items: [
+    //       {
+    //         id: 'Dmrib0dck5',
+    //         date: '2021-09-29T15:32:31.658Z',
+    //         tags: ['MEMORY'],
+    //         title: 'Towels',
+    //         description:
+    //           'Molestias vero optio odio voluptatem suscipit velit. In fuga aut quis molestiae tempore blanditiis neque non ipsum. Alias aut omnis qui qui est velit. Explicabo aut corporis aperiam distinctio eveniet rem. Magnam quis voluptates adipisci qui cum qui. Illo voluptas deserunt vero.',
+    //       },
+    //       {
+    //         id: '0IdQWewG9G',
+    //         date: '2021-09-06T23:44:56.286Z',
+    //         tags: ['CSV'],
+    //         title: 'Table',
+    //         description:
+    //           'Quos hic atque et voluptatem nihil voluptatem ipsum. Illo hic eos magnam. Nihil eaque voluptatem enim et est nihil doloribus numquam.',
+    //       },
+    //       {
+    //         id: 'BC5y7p0z1v',
+    //         date: '2022-01-04T15:27:25.351Z',
+    //         tags: ['MyISAM'],
+    //         title: 'Table',
+    //         description:
+    //           'Deleniti ipsam accusantium perferendis. Ut ut ab vero nesciunt officia et inventore. Accusantium ut deleniti voluptatem sit. Doloribus recusandae sit sed doloribus nam. Esse est officia adipisci necessitatibus porro. Aut est et ex est odit.',
+    //       },
+    //       {
+    //         id: 'YPz7WUjH5s',
+    //         date: '2021-06-03T20:05:52.736Z',
+    //         tags: ['ARCHIVE'],
+    //         title: 'Ball',
+    //         description:
+    //           'Corporis labore enim voluptatem nobis quis. Est quis aut debitis est minima corporis distinctio. Minima sapiente nesciunt doloribus aut qui voluptatibus qui. Perferendis quasi culpa. Perferendis magnam maxime voluptatem.',
+    //       },
+    //       {
+    //         id: 'axXxWzsQCR',
+    //         date: '2021-06-20T17:07:59.955Z',
+    //         tags: ['MyISAM'],
+    //         title: 'Keyboard',
+    //         description:
+    //           'Sint atque consequuntur ipsam ut hic cupiditate. Voluptatem in consequatur labore. Dolore quo voluptas nobis repellat. Voluptatem rerum dolores.',
+    //       },
+    //     ],
+    //   },
+    //   4: {
+    //     name: 'Check',
+    //     items: [
+    //       {
+    //         id: 'HanFz9CH43',
+    //         date: '2021-10-05T09:29:13.786Z',
+    //         tags: ['MyISAM'],
+    //         title: 'Keyboard',
+    //         description:
+    //           'Harum illo nihil sit et odio est soluta cupiditate ipsam. Cupiditate et sunt ea et at omnis sint. Dolores accusamus perferendis et velit placeat.',
+    //       },
+    //       {
+    //         id: '0IkW0msy74',
+    //         date: '2021-07-19T02:34:49.783Z',
+    //         tags: ['MEMORY'],
+    //         title: 'Chair',
+    //         description:
+    //           'Est vero ipsam enim dolorem et eligendi. Dicta autem maxime vitae velit fuga sint consequatur quisquam exercitationem. Odit deleniti et alias enim velit.',
+    //       },
+    //       {
+    //         id: 'NXXfUrXqkY',
+    //         date: '2021-11-03T13:56:58.252Z',
+    //         tags: ['BLACKHOLE'],
+    //         title: 'Bacon',
+    //         description:
+    //           'Qui dolores vitae. Voluptatem ut animi ratione eum nihil unde repellendus. Voluptas vel quia. Magni dolor officia facere laudantium atque hic voluptatem ad expedita.',
+    //       },
+    //       {
+    //         id: 'MOmVNhZ8KT',
+    //         date: '2022-03-03T23:52:14.168Z',
+    //         tags: ['BLACKHOLE'],
+    //         title: 'Tuna',
+    //         description:
+    //           'Et velit cum minima perferendis minus voluptatem. Distinctio possimus omnis et asperiores optio blanditiis doloremque odit distinctio. Nostrum numquam libero inventore doloremque maiores. Quis velit nihil aperiam non nisi libero dignissimos omnis dolorem.',
+    //       },
+    //       {
+    //         id: 'kQNiqBgBCZ',
+    //         date: '2021-07-01T23:44:39.913Z',
+    //         tags: ['MEMORY'],
+    //         title: 'Soap',
+    //         description:
+    //           'Aut architecto enim est qui. Possimus sed rem omnis laborum nulla. Eum molestias temporibus fugiat molestiae est adipisci. Veniam veniam sed.',
+    //       },
+    //     ],
+    //   },
+    // };
+    const keys = Object.keys(columns);
+    const result = keys.map((x) => {
+      const obj = { ...columns[x] };
+      const filterItems = obj.items.filter((y) => y.tags.includes('MEMORY'));
+      obj.items = filterItems;
+      return obj;
+    });
+    setColumns({ ...result });
+  };
+
+  const handleReset = () => {
+    const result = fixedValue;
+    setColumns({ ...result });
   };
 
   return (
@@ -226,6 +506,8 @@ const App = (props) => {
           setIds={setIds}
           anchorEl={anchorEl}
           setAnchorEl={setAnchorEl}
+          handleFilter={handleFilter}
+          handleReset={handleReset}
         />
       </Box>
       <Box
@@ -239,7 +521,7 @@ const App = (props) => {
         <DragDropContext
           onDragEnd={async (result) => onDragEnd(result, columns, setColumns)}
         >
-          {Object.entries(columns)?.map(([columnId, column], index) => {
+          {Object.entries(columns)?.map(([columnId, column], idx) => {
             return (
               <Item key={columnId}>
                 <h2>{column.name}</h2>
@@ -289,6 +571,7 @@ const App = (props) => {
                                         ...provided.draggableProps.style,
                                       }}
                                       onClick={(e) => {
+                                        setIdx(idx);
                                         setTempData(item);
                                         setOpenDetail(true);
                                       }}
@@ -350,7 +633,7 @@ const App = (props) => {
                         >
                           <Button
                             variant="contained"
-                            onClick={() => handleClickOpen(index)}
+                            onClick={() => handleClickOpen(idx)}
                           >
                             Add Task
                           </Button>
@@ -382,9 +665,10 @@ const App = (props) => {
         openDetail={openDetail}
         setOpenDetail={setOpenDetail}
         tempData={tempData}
+        handleDeleteTask={handleDeleteTask}
       />
     </>
   );
 };
 
-export default App;
+export default MyList;

@@ -6,9 +6,17 @@ import Autocomplete from '@mui/material/Autocomplete';
 import Chip from '@mui/material/Chip';
 import TextField from '@mui/material/TextField';
 
-export default function BasicPopover(props) {
-  const { users, handleAddMember, ids, setIds, anchorEl, setAnchorEl } = props;
-  // const [anchorEl, setAnchorEl] = React.useState(null);
+const Invite = (props) => {
+  const {
+    users,
+    handleAddMember,
+    ids,
+    setIds,
+    anchorEl,
+    setAnchorEl,
+    handleFilter,
+    handleReset,
+  } = props;
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -25,6 +33,12 @@ export default function BasicPopover(props) {
     <div>
       <Button aria-describedby={id} variant="outlined" onClick={handleClick}>
         Invite
+      </Button>
+      <Button aria-describedby={id} variant="outlined" onClick={handleFilter}>
+        Filter
+      </Button>
+      <Button aria-describedby={id} variant="outlined" onClick={handleReset}>
+        Reset
       </Button>
       <Popover
         id={id}
@@ -73,11 +87,13 @@ export default function BasicPopover(props) {
               variant="contained"
               onClick={() => handleAddMember(ids)}
             >
-              Simpan
+              Save
             </Button>
           </div>
         )}
       </Popover>
     </div>
   );
-}
+};
+
+export default Invite;
